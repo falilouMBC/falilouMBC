@@ -1,53 +1,73 @@
-# 👋 Hello there! I'm Serigne Falilou Cissé
+<!-- Banner -->
+
+
+<h1 align="center">Hi, I'm Falilou👋</h1>
+
+<p align="center">
+  <b>Fullstack Developer | AI Enthusiast | Problem Solver ⚛️</b><br>
+  Building solutions at the intersection of data, web, and science.
+</p>
 
 ---
 
-### About Me
+## 🧰 Tech Stack & Tools
 
-💻 I'm a passionate **Full-Stack Developer** with solid expertise in building robust and high-performance applications. My journey has allowed me to master a wide range of technologies, from database management to deployment, encompassing both front-end and back-end development.
-
-🚀 My goal is to build innovative and efficient solutions, leveraging best practices in software development and architecture.
-
----
-
-### My Technical Skills
-
-I'm proficient with the following languages, frameworks, and tools:
-
-* **Programming Languages:**
-    * Java
-    * Python
-    * JavaScript
-    * Dart
-* **Back-end Frameworks:**
-    * Spring (Java)
-    * FastAPI (Python)
-    * Node.js (JavaScript)
-* **Front-end / Mobile Frameworks:**
-    * React.js (JavaScript)
-    * React Native (JavaScript for mobile)
-* **Deployment & DevOps Tools:**
-    * Docker
-    * Kubernetes
-    * Nginx
-* **Automation Tools:**
-    * **n8n** (Workflow Automation)
-* **Specialized Technologies:**
-    * **Crawling AI (CrawAI)** for advanced web data collection and analysis
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3670A0?style=for-the-badge&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black"/>
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white"/>
+  <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi"/>
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB"/>
+  <img src="https://img.shields.io/badge/Qiskit-6929C4?style=for-the-badge&logo=ibm&logoColor=white"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white"/>
+</p>
 
 ---
 
+## 🧠 Featured Projects
 
-### Let's Connect!
+### 🧠 UjuzAI  
+> AI-powered recruitment tool for CV screening  
+Tech: Streamlit · Qdrant · PostgreSQL · Transformers
 
-🤝 I'm open to collaborations on innovative projects. Don't hesitate to reach out if you have an interesting idea!
-
----
-
-### Get in Touch
-
-📧 You can reach me by email at **cissefalilou8@gmail.com** or find me on (https://www.linkedin.com/in/serigne-falilou-m-back%C3%A9-cisse-0810081a3/).
+### 🔐 AuthChainLib (WIP)  
+> Decentralized authentication library for Flutter using blockchain & mnemonics
 
 ---
 
+## 📈 GitHub Stats
 
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api?username=falilouMBC&show_icons=true&count_private=true&theme=radical" width="49%">
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=falilouMBC&layout=compact&theme=radical" width="49%">
+</p>
+
+---
+
+## 💡 A Bit More About Me
+
+- 🌍 Based in Senegal  
+- 📚 Currently exploring Architecture, Algorithmic & AI  
+- 🧠 I love solving real-world problems with clean, scalable code  
+
+---
+
+## 📫 Let’s Connect
+
+- 🌐 Website: (loading...)  
+- 💼 LinkedIn: [linkedin.com/in/serignefaliloumbackecisse](https://www.linkedin.com/in/serigne-falilou-m-back%C3%A9-cisse-0810081a3/)  
+- 📧 Email: cissefalilou8@gmail.com
+
+<p align="center">
+  <img src="https://komarev.com/ghpvc/?username=falilouMBC&label=Visitors&style=flat-square&color=blue" alt="Visitor badge"/>
+</p>
+
+---
+
+<p align="center">
+  <img src="https://media.giphy.com/media/qgQUggAC3Pfv687qPC/giphy.gif" width="250" alt="code animation" />
+</p>
+
+<p align="center"><b>“Build with passion. Solve with purpose. Explore beyond limits.”</b></p>
