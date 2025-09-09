@@ -12,10 +12,10 @@
 ---
 
 ### 🌟 Featured Projects  
-🔹 **UjuzAI** – AI-powered recruitment tool (Streamlit • Transformers • PostgreSQL)  
+🔹 **UjuzAI** – AI-powered recruitment tool (FastAPI • Transformers • PostgreSQL • ReactJS)  
 🔹 **ChainPass** – Decentralized authentication for Flutter using blockchain  
 🔹 **Belanafa** – Health & maternal care app (Spring Boot • Angular • Flutter • PostgreSQL)  
-🔹 **Finance Tracker** – Personal finance mobile app (React Native • NodeJS • MongoDB)  
+🔹 **Finance Tracker** – Personal finance mobile app (React Native • Expo • NodeJS(Express) • MongoDB)  
 
 ---
 
@@ -43,9 +43,6 @@
   </a>
   <a href="mailto:cissefalilou8@gmail.com">
     <img src="https://skillicons.dev/icons?i=gmail" />
-  </a>
-  <a href="https://github.com/falilouMBC">
-    <img src="https://skillicons.dev/icons?i=github" />
   </a>
 </p>
 
