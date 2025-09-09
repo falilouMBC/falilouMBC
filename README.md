@@ -41,6 +41,7 @@
   <a href="https://linkedin.com/in/serigne-falilou-m-back%C3%A9-cisse-0810081a3">
     <img src="https://skillicons.dev/icons?i=linkedin" />
   </a>
+  <span> </span>
   <a href="mailto:cissefalilou8@gmail.com">
     <img src="https://skillicons.dev/icons?i=gmail" />
   </a>
