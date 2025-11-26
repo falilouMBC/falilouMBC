@@ -20,10 +20,10 @@ github:
   # Token d'authentification GitHub (Personal Access Token)
   # Permissions requises: repo (full), user (read)
   # Créez-en un sur: https://github.com/settings/tokens
-  token: ""
+  token: "${GITHUB_TOKEN:-}"
   
   # Votre nom d'utilisateur GitHub
-  username: ""
+  username: "${GITHUB_USERNAME:-}"
   
   # URL de base de l'API GitHub (ne changez que si vous utilisez GitHub Enterprise)
   api_url: "https://api.github.com"

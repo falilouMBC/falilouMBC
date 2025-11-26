@@ -19,6 +19,7 @@ La configuration permet de personnaliser:
 """
 
 import os
+import re
 import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
@@ -38,6 +39,8 @@ class Config:
         data (Dict): Données de configuration chargées
     """
     
+    ENV_PATTERN = re.compile(r'\$\{([^}:]+)(?::-(.*?))?\}')
+
     def __init__(self, config_file: str = 'configs/config.yaml'):
         """
         Initialise la configuration
@@ -60,6 +63,7 @@ class Config:
             try:
                 with open(self.config_file, 'r', encoding='utf-8') as f:
                     self.data = yaml.safe_load(f) or {}
+                self.data = self._resolve_env_placeholders(self.data)
                 print(f"✅ Configuration chargée depuis {self.config_file}")
             except yaml.YAMLError as e:
                 print(f"⚠️  Erreur lors du chargement de la config: {e}")
@@ -71,6 +75,26 @@ class Config:
         
         # Appliquer les surcharges d'environnement
         self._apply_env_overrides()
+
+    def _resolve_env_placeholders(self, value: Any) -> Any:
+        """
+        Remplace les placeholders ${ENV_VAR:-default} par les valeurs d'environnement.
+        """
+        if isinstance(value, dict):
+            return {k: self._resolve_env_placeholders(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [self._resolve_env_placeholders(item) for item in value]
+        if isinstance(value, str):
+            return self._replace_env_in_string(value)
+        return value
+
+    def _replace_env_in_string(self, text: str) -> str:
+        def replacer(match: re.Match) -> str:
+            var_name = match.group(1)
+            default = match.group(2) if match.group(2) is not None else ''
+            return os.getenv(var_name, default)
+
+        return self.ENV_PATTERN.sub(replacer, text)
     
     def save(self):
         """
