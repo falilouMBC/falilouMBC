@@ -68,20 +68,11 @@ jobs:
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'  # Cache des dépendances pip
-      
-      # -----------------------------------------------------------------------
-      # 3. Installation des dépendances
-      # -----------------------------------------------------------------------
-      - name: 📦 Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests pyyaml
-          
-          # Vérifier l'installation
-          python --version
-          pip list
+          python-version: '3.13.1'
+      - uses: py-actions/py-dependency-install@v4
+        with:
+          path: requirements.txt
+     - run: python scripts/update_stats.py
       
       # -----------------------------------------------------------------------
       # 4. Afficher les informations de l'environnement
