@@ -16,6 +16,16 @@
 # ----------------------------------------------------------------------------
 # Configuration GitHub
 # ----------------------------------------------------------------------------
+
+steps:
+    - uses: actions/checkout@v4      # indispensable
+    - uses: actions/setup-python@v5
+       with:
+         python-version: '3.13.1'
+     - uses: py-actions/py-dependency-install@v4
+       with:
+         path: requirements.txt
+     - run: python scripts/update_stats.py
 github:
   # Token d'authentification GitHub (Personal Access Token)
   # Permissions requises: repo (full), user (read)
