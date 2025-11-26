@@ -69,10 +69,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.13.1'
-      - uses: py-actions/py-dependency-install@v4
-        with:
-          path: requirements.txt
-     - run: python scripts/update_stats.py
+
+      # -----------------------------------------------------------------------
+      # 3. Installer les dépendances
+      # -----------------------------------------------------------------------
+      - name: 📦 Install dependencies
+        run: pip install -r requirements.txt
       
       # -----------------------------------------------------------------------
       # 4. Afficher les informations de l'environnement
