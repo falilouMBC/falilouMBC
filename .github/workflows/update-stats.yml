@@ -86,7 +86,7 @@ jobs:
         if: github.event.inputs.clear_cache == 'true'
         run: |
           echo "🧹 Nettoyage du cache..."
-          rm -rf . cache/
+          rm -rf .cache/
           echo "✅ Cache nettoyé"
       
       # -----------------------------------------------------------------------
