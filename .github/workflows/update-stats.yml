@@ -159,15 +159,19 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Commit
-          git add README.md stats/ || true
+          # Préparer le commit (README seulement; stats est ignoré par .gitignore)
+          git add README.md
           git commit -m "🤖 Auto-update GitHub stats - $(date +'%Y-%m-%d %H:%M')" \
                      -m "Updated by GitHub Actions workflow" \
                      -m "Run ID: ${{ github.run_id }}" \
                      -m "Triggered by: ${{ github.event_name }}"
           
+          # Synchroniser avec la branche distante pour éviter les push rejetés
+          git fetch origin main
+          git pull --rebase origin main
+          
           # Push
-          git push origin main || git push origin master || {
+          git push origin HEAD:main || git push origin HEAD:master || {
             echo "❌ Erreur lors du push"
             echo "Vérifiez que le workflow a les permissions d'écriture"
             exit 1
