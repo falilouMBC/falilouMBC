@@ -31,11 +31,17 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+        - name: 📥 Checkout repository
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+            token: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: 🔄 Sync branch
+          run: |
+            git fetch origin main
+            git checkout main || git checkout -b main
+            git pull origin main
       
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
@@ -96,20 +102,15 @@ jobs:
             git diff --stat README.md
           fi
       
-      - name: ⚙️ Configure git
-        run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github. com"
-      
-      - name: 🔄 Fetch and rebase
-        run: |
-          git fetch origin main
-          git pull --rebase origin main
+        - name: ⚙️ Configure git
+          run: |
+            git config --local user.name "github-actions[bot]"
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
       
       - name: 💾 Commit and push changes
         if: |
           steps.check_changes.outputs.changed == 'true' && 
-          github. event.inputs.dry_run != 'true'
+           github.event.inputs.dry_run != 'true'
         run: |
           git add README.md
           
