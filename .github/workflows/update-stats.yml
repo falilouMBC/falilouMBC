@@ -57,6 +57,15 @@ jobs:
     
     steps:
       # -----------------------------------------------------------------------
+      # 0. S'assurer d'être sur la branche main à jour
+      # -----------------------------------------------------------------------
+      - name: 🔀 Sync with main
+        run: |
+          git fetch origin main
+          git checkout main || git checkout -b main
+          git pull --rebase origin main
+
+      # -----------------------------------------------------------------------
       # 1. Checkout du repository
       # -----------------------------------------------------------------------
       - name: 📥 Checkout repository
@@ -168,10 +177,6 @@ jobs:
                      -m "Updated by GitHub Actions workflow" \
                      -m "Run ID: ${{ github.run_id }}" \
                      -m "Triggered by: ${{ github.event_name }}"
-          
-          # Synchroniser avec la branche distante pour éviter les push rejetés
-          git fetch origin main
-          git pull --rebase origin main
           
           # Push
           git push origin HEAD:main || git push origin HEAD:master || {
