@@ -14,8 +14,6 @@
 
 name: 📊 Update GitHub Stats
 
-permissions:
-  contents: write
 
 on:
   # Exécution automatique tous les jours à minuit UTC
