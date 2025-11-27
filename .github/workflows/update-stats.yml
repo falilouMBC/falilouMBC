@@ -3,12 +3,11 @@
 # ============================================================================
 #
 # Ce workflow met à jour automatiquement votre profil GitHub avec vos
-# statistiques les plus récentes, incluant les dépôts privés.
+# statistiques les plus récentes, incluant les dépôts privés. 
 #
 # Déclencheurs:
 # - Tous les jours à 00:00 UTC (schedule)
 # - Manuel via l'interface GitHub (workflow_dispatch)
-# - Push sur la branche main (optionnel)
 #
 # ============================================================================
 
@@ -36,19 +35,6 @@ on:
         required: false
         type: boolean
         default: false
-  
-  # Optionnel: Exécuter sur push (décommentez si désiré)
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'scripts/**'
-  #     - 'src/**'
-  #     - 'configs/**'
-
-# Permissions nécessaires pour le workflow
-permissions:
-  contents: write  # Pour commit et push le README
 
 jobs:
   update-stats:
@@ -57,33 +43,24 @@ jobs:
     
     steps:
       # -----------------------------------------------------------------------
-      # 0. S'assurer d'être sur la branche main à jour
-      # -----------------------------------------------------------------------
-      - name: 🔀 Sync with main
-        run: |
-          git fetch origin main
-          git checkout main || git checkout -b main
-          git pull --rebase origin main
-
-      # -----------------------------------------------------------------------
-      # 1. Checkout du repository
+      # 1. Checkout du repository (TOUJOURS EN PREMIER!)
       # -----------------------------------------------------------------------
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Récupérer tout l'historique
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       
       # -----------------------------------------------------------------------
-      # 2. Configuration de Python
+      # 2.  Configuration de Python
       # -----------------------------------------------------------------------
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13.1'
+          python-version: '3.13. 1'
 
       # -----------------------------------------------------------------------
-      # 3. Installer les dépendances
+      # 3.  Installer les dépendances
       # -----------------------------------------------------------------------
       - name: 📦 Install dependencies
         run: pip install -r requirements.txt
@@ -109,18 +86,15 @@ jobs:
         if: github.event.inputs.clear_cache == 'true'
         run: |
           echo "🧹 Nettoyage du cache..."
-          rm -rf .cache/
+          rm -rf . cache/
           echo "✅ Cache nettoyé"
       
       # -----------------------------------------------------------------------
-      # 6. Exécuter le script de mise à jour
+      # 6.  Exécuter le script de mise à jour
       # -----------------------------------------------------------------------
       - name: 🚀 Run update script
         env:
-          # IMPORTANT: Utilisez un Personal Access Token avec les permissions appropriées
-          # Créez un secret nommé STATS_TOKEN dans les settings de votre repo
-          # Si vous n'avez pas de STATS_TOKEN, le workflow utilisera GITHUB_TOKEN par défaut
-          GITHUB_TOKEN: ${{ secrets.STATS_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets. STATS_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_USERNAME: ${{ github.repository_owner }}
           CACHE_ENABLED: 'true'
           LOG_LEVEL: 'INFO'
@@ -129,7 +103,7 @@ jobs:
           
           # Construire les options
           OPTIONS=""
-          if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
+          if [ "${{ github. event.inputs.dry_run }}" == "true" ]; then
             OPTIONS="$OPTIONS --dry-run"
             echo "ℹ️ Mode dry-run activé"
           fi
@@ -160,35 +134,41 @@ jobs:
           fi
       
       # -----------------------------------------------------------------------
-      # 8. Commit et push (si changements et pas en dry-run)
+      # 8. Configuration Git
+      # -----------------------------------------------------------------------
+      - name: ⚙️ Configure git
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+      
+      # -----------------------------------------------------------------------
+      # 9. Commit et push (si changements et pas en dry-run)
       # -----------------------------------------------------------------------
       - name: 💾 Commit and push changes
         if: |
-          steps.check_changes.outputs.changed == 'true' && 
+          steps. check_changes.outputs.changed == 'true' && 
           github.event.inputs.dry_run != 'true'
         run: |
-          # Configuration Git
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Préparer le commit (README seulement; stats est ignoré par .gitignore)
+          # Ajouter les fichiers modifiés
           git add README.md
+          
+          # Créer le commit
           git commit -m "🤖 Auto-update GitHub stats - $(date +'%Y-%m-%d %H:%M')" \
                      -m "Updated by GitHub Actions workflow" \
                      -m "Run ID: ${{ github.run_id }}" \
                      -m "Triggered by: ${{ github.event_name }}"
           
-          # Push
-          git push origin HEAD:main || git push origin HEAD:master || {
-            echo "❌ Erreur lors du push"
-            echo "Vérifiez que le workflow a les permissions d'écriture"
-            exit 1
-          }
+          # Récupérer les derniers changements du remote
+          git fetch origin main
+          git pull --rebase origin main
+          
+          # Pousser les changements
+          git push origin main
           
           echo "✅ Changements commitées et poussés avec succès"
       
       # -----------------------------------------------------------------------
-      # 9. Résumé de l'exécution
+      # 10. Résumé de l'exécution
       # -----------------------------------------------------------------------
       - name: 📋 Execution summary
         if: always()
@@ -200,7 +180,7 @@ jobs:
           echo ""
           echo "✅ Statut: ${{ job.status }}"
           echo "🕐 Terminé à: $(date)"
-          echo "🔗 Profil: https://github.com/${{ github.repository_owner }}"
+          echo "🔗 Profil: https://github.com/${{ github. repository_owner }}"
           echo ""
           
           if [ "${{ steps.check_changes.outputs.changed }}" == "true" ]; then
@@ -213,7 +193,7 @@ jobs:
           echo "═══════════════════════════════════════════════════════"
       
       # -----------------------------------------------------------------------
-      # 10. Gestion des erreurs
+      # 11. Gestion des erreurs
       # -----------------------------------------------------------------------
       - name: ❌ Handle errors
         if: failure()
@@ -228,7 +208,7 @@ jobs:
           echo "🔍 Actions de dépannage:"
           echo "   1. Vérifiez que GITHUB_TOKEN ou STATS_TOKEN est configuré"
           echo "   2. Vérifiez les permissions du token (repo, user)"
-          echo "   3. Consultez les logs ci-dessus pour plus de détails"
+          echo "   3.  Consultez les logs ci-dessus pour plus de détails"
           echo ""
           echo "📚 Documentation: https://docs.github.com/actions"
           echo ""
@@ -242,9 +222,9 @@ jobs:
 # Pour que ce workflow fonctionne correctement, vous devez créer un
 # Personal Access Token (PAT) avec les permissions appropriées:
 #
-# 1. Allez sur https://github.com/settings/tokens
+# 1.  Allez sur https://github.com/settings/tokens
 # 2. Cliquez sur "Generate new token (classic)"
-# 3. Donnez un nom: "GitHub Stats Automation"
+# 3.  Donnez un nom: "GitHub Stats Automation"
 # 4. Sélectionnez les scopes:
 #    ✓ repo (Full control of private repositories)
 #    ✓ user (Read user profile data)
@@ -258,4 +238,3 @@ jobs:
 #       c'est pourquoi un PAT est nécessaire.
 #
 # ============================================================================
-
