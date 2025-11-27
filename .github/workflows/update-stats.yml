@@ -57,7 +57,7 @@ jobs:
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13. 1'
+          python-version: '3.13.1'
 
       # -----------------------------------------------------------------------
       # 3.  Installer les dépendances
@@ -86,7 +86,7 @@ jobs:
         if: github.event.inputs.clear_cache == 'true'
         run: |
           echo "🧹 Nettoyage du cache..."
-          rm -rf . cache/
+          rm -rf .cache/
           echo "✅ Cache nettoyé"
       
       # -----------------------------------------------------------------------
