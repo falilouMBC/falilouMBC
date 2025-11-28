@@ -54,6 +54,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      -name: checkout repository
+       uses: actions/checkout@v4
+       with:
+         fetch-depth: 0  # Récupérer tout l'historique
+         token: ${{ secrets.GITHUB_TOKEN }}
       # -----------------------------------------------------------------------
       # 0. S'assurer d'être sur la branche main à jour
       # -----------------------------------------------------------------------
@@ -124,7 +129,6 @@ jobs:
           LOG_LEVEL: 'INFO'
         run: |
           echo "🚀 Démarrage de la mise à jour des statistiques..."
-          
           # Construire les options
           OPTIONS=""
           if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
