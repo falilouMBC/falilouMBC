@@ -11,16 +11,11 @@
 # - Push sur la branche main (optionnel)
 #
 # ============================================================================
-
 name: 📊 Update GitHub Stats
 
-
 on:
-  # Exécution automatique tous les jours à minuit UTC
   schedule:
-    - cron: '0 0 * * *'  # Tous les jours à 00:00 UTC
-  
-  # Permettre le déclenchement manuel depuis l'interface GitHub
+    - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
       clear_cache:
@@ -28,72 +23,47 @@ on:
         required: false
         type: boolean
         default: false
-      
       dry_run:
         description: 'Mode dry-run (ne pas publier sur GitHub)'
         required: false
         type: boolean
         default: false
-  
-  # Optionnel: Exécuter sur push (décommentez si désiré)
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'scripts/**'
-  #     - 'src/**'
-  #     - 'configs/**'
 
-# Permissions nécessaires pour le workflow
 permissions:
-  contents: write  # Pour commit et push le README
+  contents: write
 
 jobs:
   update-stats:
     name: 🔄 Mettre à jour les statistiques
     runs-on: ubuntu-latest
-    
-    steps:
-      -name: checkout repository
-       uses: actions/checkout@v4
-       with:
-         fetch-depth: 0  # Récupérer tout l'historique
-         token: ${{ secrets.GITHUB_TOKEN }}
-      # -----------------------------------------------------------------------
-      # 0. S'assurer d'être sur la branche main à jour
-      # -----------------------------------------------------------------------
-      - name: 🔀 Sync with main
-        run: |
-          git fetch origin main
-          git checkout main || git checkout -b main
-          git pull --rebase origin main
 
-      # -----------------------------------------------------------------------
-      # 1. Checkout du repository
-      # -----------------------------------------------------------------------
+    steps:
+      # 0. Checkout du repository (doit être fait avant d'exécuter des commandes git)
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Récupérer tout l'historique
+          ref: main
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-      
-      # -----------------------------------------------------------------------
+
+      # 1. S'assurer d'être sur la branche main à jour
+      - name: 🔀 Sync with main
+        run: |
+          git fetch --prune origin
+          git checkout main || git checkout -b main
+          git reset --hard origin/main
+
       # 2. Configuration de Python
-      # -----------------------------------------------------------------------
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13.1'
 
-      # -----------------------------------------------------------------------
       # 3. Installer les dépendances
-      # -----------------------------------------------------------------------
       - name: 📦 Install dependencies
         run: pip install -r requirements.txt
-      
-      # -----------------------------------------------------------------------
+
       # 4. Afficher les informations de l'environnement
-      # -----------------------------------------------------------------------
       - name: ℹ️ Display environment info
         run: |
           echo "🔍 Informations de l'environnement:"
@@ -104,126 +74,96 @@ jobs:
           echo "   Run ID: ${{ github.run_id }}"
           echo ""
           echo "🕐 Temps d'exécution: $(date)"
-      
-      # -----------------------------------------------------------------------
+
       # 5. Nettoyer le cache (si demandé)
-      # -----------------------------------------------------------------------
       - name: 🧹 Clear cache
         if: github.event.inputs.clear_cache == 'true'
         run: |
           echo "🧹 Nettoyage du cache..."
           rm -rf .cache/
           echo "✅ Cache nettoyé"
-      
-      # -----------------------------------------------------------------------
+
       # 6. Exécuter le script de mise à jour
-      # -----------------------------------------------------------------------
       - name: 🚀 Run update script
         env:
-          # IMPORTANT: Utilisez un Personal Access Token avec les permissions appropriées
-          # Créez un secret nommé STATS_TOKEN dans les settings de votre repo
-          # Si vous n'avez pas de STATS_TOKEN, le workflow utilisera GITHUB_TOKEN par défaut
           GITHUB_TOKEN: ${{ secrets.STATS_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_USERNAME: ${{ github.repository_owner }}
           CACHE_ENABLED: 'true'
           LOG_LEVEL: 'INFO'
         run: |
           echo "🚀 Démarrage de la mise à jour des statistiques..."
-          # Construire les options
           OPTIONS=""
           if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
             OPTIONS="$OPTIONS --dry-run"
             echo "ℹ️ Mode dry-run activé"
           fi
-          
-          # Exécuter le script
           python scripts/update_stats.py $OPTIONS
-          
           echo "✅ Script terminé avec succès"
-      
-      # -----------------------------------------------------------------------
+
       # 7. Vérifier les changements
-      # -----------------------------------------------------------------------
       - name: 🔍 Check for changes
         id: check_changes
         run: |
-          # Vérifier si le README a été modifié
           if git diff --quiet README.md; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "ℹ️ Aucun changement détecté dans le README"
           else
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "✅ Changements détectés dans le README"
-            
-            # Afficher les statistiques des changements
             echo ""
             echo "📊 Statistiques des changements:"
             git diff --stat README.md
           fi
-      
-      # -----------------------------------------------------------------------
+
       # 8. Commit et push (si changements et pas en dry-run)
-      # -----------------------------------------------------------------------
       - name: 💾 Commit and push changes
         if: |
-          steps.check_changes.outputs.changed == 'true' && 
+          steps.check_changes.outputs.changed == 'true' &&
           github.event.inputs.dry_run != 'true'
         run: |
-          # Configuration Git
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Préparer le commit (README seulement; stats est ignoré par .gitignore)
           git add README.md
           git commit -m "🤖 Auto-update GitHub stats - $(date +'%Y-%m-%d %H:%M')" \
                      -m "Updated by GitHub Actions workflow" \
                      -m "Run ID: ${{ github.run_id }}" \
                      -m "Triggered by: ${{ github.event_name }}"
-          
-          # Push
           git push origin HEAD:main || git push origin HEAD:master || {
             echo "❌ Erreur lors du push"
             echo "Vérifiez que le workflow a les permissions d'écriture"
             exit 1
           }
-          
           echo "✅ Changements commitées et poussés avec succès"
-      
-      # -----------------------------------------------------------------------
+
       # 9. Résumé de l'exécution
-      # -----------------------------------------------------------------------
       - name: 📋 Execution summary
         if: always()
         run: |
           echo ""
-          echo "═══════════════════════════════════════════════════════"
+          echo "══════════════════════════════════════════════════════="
           echo "           📊 RÉSUMÉ DE L'EXÉCUTION"
-          echo "═══════════════════════════════════════════════════════"
+          echo "══════════════════════════════════════════════════════="
           echo ""
           echo "✅ Statut: ${{ job.status }}"
           echo "🕐 Terminé à: $(date)"
           echo "🔗 Profil: https://github.com/${{ github.repository_owner }}"
           echo ""
-          
           if [ "${{ steps.check_changes.outputs.changed }}" == "true" ]; then
             echo "📝 README mis à jour avec succès!"
           else
             echo "ℹ️ Aucune mise à jour nécessaire"
           fi
-          
           echo ""
-          echo "═══════════════════════════════════════════════════════"
-      
-      # -----------------------------------------------------------------------
+          echo "══════════════════════════════════════════════════════="
+
       # 10. Gestion des erreurs
-      # -----------------------------------------------------------------------
       - name: ❌ Handle errors
         if: failure()
         run: |
           echo ""
-          echo "═══════════════════════════════════════════════════════"
+          echo "══════════════════════════════════════════════════════="
           echo "           ❌ ERREUR LORS DE L'EXÉCUTION"
-          echo "═══════════════════════════════════════════════════════"
+          echo "══════════════════════════════════════════════════════="
           echo ""
           echo "Une erreur s'est produite lors de l'exécution du workflow."
           echo ""
@@ -234,29 +174,5 @@ jobs:
           echo ""
           echo "📚 Documentation: https://docs.github.com/actions"
           echo ""
-          echo "═══════════════════════════════════════════════════════"
+          echo "══════════════════════════════════════════════════════="
           exit 1
-
-# ============================================================================
-# Configuration du Token
-# ============================================================================
-#
-# Pour que ce workflow fonctionne correctement, vous devez créer un
-# Personal Access Token (PAT) avec les permissions appropriées:
-#
-# 1. Allez sur https://github.com/settings/tokens
-# 2. Cliquez sur "Generate new token (classic)"
-# 3. Donnez un nom: "GitHub Stats Automation"
-# 4. Sélectionnez les scopes:
-#    ✓ repo (Full control of private repositories)
-#    ✓ user (Read user profile data)
-# 5. Générez le token
-# 6. Copiez le token
-# 7. Allez dans Settings > Secrets and variables > Actions de votre repo
-# 8. Créez un nouveau secret nommé "STATS_TOKEN"
-# 9. Collez le token
-#
-# Note: Le GITHUB_TOKEN par défaut ne peut pas accéder aux repos privés,
-#       c'est pourquoi un PAT est nécessaire.
-#
-# ============================================================================
