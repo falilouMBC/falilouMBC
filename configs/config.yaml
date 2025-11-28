@@ -154,8 +154,7 @@ logging:
 # ----------------------------------------------------------------------------
 output:
   # Fichier de sortie du README généré (local)
-  # (modifié pour utiliser README_PROFILE.md au lieu de README.md)
-  readme_file: "README_PROFILE.md"
+  readme_file: "README.md"
   
   # Sauvegarder aussi les statistiques en JSON
   save_json: true

@@ -104,7 +104,7 @@ jobs:
       - name: 🔍 Check for changes
         id: check_changes
         run: |
-          if git diff --quiet README_PROFILE.md; then
+          if git diff --quiet README.md; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "ℹ️ Aucun changement détecté dans le README"
           else
@@ -112,7 +112,7 @@ jobs:
             echo "✅ Changements détectés dans le README"
             echo ""
             echo "📊 Statistiques des changements:"
-            git diff --stat README_PROFILE.md
+            git diff --stat README.md
           fi
 
       # 8. Commit et push (si changements et pas en dry-run)
@@ -123,7 +123,7 @@ jobs:
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git add README_PROFILE.md
+          git add README.md
           git commit -m "🤖 Auto-update GitHub stats - $(date +'%Y-%m-%d %H:%M')" \
                      -m "Updated by GitHub Actions workflow" \
                      -m "Run ID: ${{ github.run_id }}" \
@@ -149,7 +149,7 @@ jobs:
           echo "🔗 Profil: https://github.com/${{ github.repository_owner }}"
           echo ""
           if [ "${{ steps.check_changes.outputs.changed }}" == "true" ]; then
-            echo "📝 README_PROFILE mis à jour avec succès!"
+            echo "📝 README mis à jour avec succès!"
           else
             echo "ℹ️ Aucune mise à jour nécessaire"
           fi
