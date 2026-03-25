@@ -9,12 +9,12 @@
 | Métrique | Valeur |
 |----------|--------|
 | ⭐ Total Stars Earned | **7** |
-| 📝 Total Commits (365 jours) | **327** |
+| 📝 Total Commits (365 jours) | **328** |
 | 🔀 Total PRs | **71** |
 | ❗ Total Issues | **0** |
 | 📦 Repos Contribués | **20** |
-| ➕ Lignes Ajoutées | **12 761** |
-| ➖ Lignes Supprimées | **294** |
+| ➕ Lignes Ajoutées | **1 107 002** |
+| ➖ Lignes Supprimées | **1 048 672** |
 
 ### 📦 Dépôts
 
@@ -64,7 +64,7 @@ Lun    ⬜  ⬜  ⬜  🟩  🟧  🟩  ⬜  ⬜
 Mar    ⬜  ⬜  ⬜  🟨  ⬜  🟩  ⬜  ⬜ 
 Mer    ⬜  ⬜  ⬜  🟩  ⬜  🟩  🟩  ⬜ 
 Jeu    ⬜  ⬜  ⬜  🟩  🟩  🟩  ⬜  ⬜ 
-Ven    ⬜  ⬜  ⬜  ⬜  🟨  🟧  ⬜  ⬜ 
+Ven    ⬜  ⬜  ⬜  ⬜  🟨  🟨  ⬜  ⬜ 
 Sam    ⬜  ⬜  ⬜  ⬜  🟩  🟩  ⬜  ⬜ 
 Dim    ⬜  ⬜  ⬜  ⬜  ⬜  ⬜  🟩  ⬜ 
 
@@ -77,7 +77,7 @@ Dim    ⬜  ⬜  ⬜  ⬜  ⬜  ⬜  🟩  ⬜
 
 ```
 Stars       : ██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 7
-Commits     : ██████████████████████████████████████████████████ 327
+Commits     : ██████████████████████████████████████████████████ 328
 PRs         : ██████████████████████████████████████████████████ 71
 Issues      : ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0
 ```
@@ -109,6 +109,6 @@ Issues      : ░░░░░░░░░░░░░░░░░░░░░░
 
 <div align="center">
 
-  <sub>📊 Stats mises à jour automatiquement le 24/03/2026 à 02:14</sub>
+  <sub>📊 Stats mises à jour automatiquement le 25/03/2026 à 02:26</sub>
 
 </div>
