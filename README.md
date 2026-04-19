@@ -12,7 +12,7 @@
 | 📝 Total Commits (365 jours) | **362** |
 | 🔀 Total PRs | **76** |
 | ❗ Total Issues | **0** |
-| 📦 Repos Contribués | **20** |
+| 📦 Repos Contribués | **19** |
 
 ### 📦 Dépôts
 
@@ -62,7 +62,7 @@ Lun    ⬜  ⬜  ⬜  🟩  🟧  🟩  ⬜  ⬜
 Mar    ⬜  ⬜  ⬜  🟨  ⬜  🟩  ⬜  ⬜ 
 Mer    ⬜  ⬜  ⬜  🟩  ⬜  🟩  🟩  ⬜ 
 Jeu    ⬜  ⬜  ⬜  🟩  🟧  🟩  ⬜  ⬜ 
-Ven    ⬜  ⬜  ⬜  ⬜  🟨  🟨  ⬜  ⬜ 
+Ven    ⬜  ⬜  ⬜  ⬜  🟨  🟩  ⬜  ⬜ 
 Sam    ⬜  ⬜  ⬜  ⬜  🟩  🟩  ⬜  ⬜ 
 Dim    ⬜  ⬜  ⬜  ⬜  ⬜  ⬜  🟩  ⬜ 
 
@@ -107,6 +107,6 @@ Issues      : ░░░░░░░░░░░░░░░░░░░░░░
 
 <div align="center">
 
-  <sub>📊 Stats mises à jour automatiquement le 18/04/2026 à 02:35</sub>
+  <sub>📊 Stats mises à jour automatiquement le 19/04/2026 à 02:50</sub>
 
 </div>
