@@ -1,7 +1,7 @@
 # ============================================================================
 # Configuration GitHub Stats Automation
 # ============================================================================
-# 
+#
 # Ce fichier contient toute la configuration pour le système de statistiques
 # GitHub automatisé.
 #
@@ -16,25 +16,15 @@
 # ----------------------------------------------------------------------------
 # Configuration GitHub
 # ----------------------------------------------------------------------------
-
-steps:
-    - uses: actions/checkout@v4      # indispensable
-    - uses: actions/setup-python@v5
-       with:
-         python-version: '3.13.1'
-     - uses: py-actions/py-dependency-install@v4
-       with:
-         path: requirements.txt
-     - run: python scripts/update_stats.py
 github:
   # Token d'authentification GitHub (Personal Access Token)
   # Permissions requises: repo (full), user (read)
   # Créez-en un sur: https://github.com/settings/tokens
   token: "${GITHUB_TOKEN:-}"
-  
+
   # Votre nom d'utilisateur GitHub
   username: "${GITHUB_USERNAME:-}"
-  
+
   # URL de base de l'API GitHub (ne changez que si vous utilisez GitHub Enterprise)
   api_url: "https://api.github.com"
 
@@ -44,27 +34,27 @@ github:
 stats:
   # Inclure les dépôts privés dans les statistiques
   include_private: true
-  
+
   # Période d'analyse en jours (365 = 1 an)
   days_back: 365
-  
+
   # Nombre maximum de repos à récupérer par page (max: 100)
   max_repos_per_page: 100
-  
+
   # Nombre maximum de pages de commits à analyser par repo
   # Augmentez pour plus de précision, diminuez pour plus de vitesse
   max_commits_pages: 10
-  
+
   # Inclure les statistiques détaillées de code (additions/suppressions)
   # Note: Ces stats peuvent prendre du temps à générer
   include_code_changes: true
-  
+
   # Inclure l'analyse des langages de programmation
   include_languages: true
-  
+
   # Inclure la heatmap d'activité (commits par jour/heure)
   include_heatmap: true
-  
+
   # Inclure les contributions aux repos externes
   # Note: Fonctionnalité en développement
   include_external_contributions: false
@@ -76,14 +66,14 @@ cache:
   # Activer le système de cache
   # Le cache réduit les requêtes API et accélère les exécutions
   enabled: true
-  
+
   # Durée de validité du cache en heures
   # 24h = 1 jour, 168h = 1 semaine
   max_age_hours: 24
-  
+
   # Répertoire où stocker les fichiers de cache
   directory: ".cache"
-  
+
   # Nettoyer automatiquement les vieux fichiers de cache
   auto_clean: true
 
@@ -94,10 +84,10 @@ rate_limit:
   # Nombre minimum de requêtes API restantes avant d'attendre
   # GitHub autorise 5000 requêtes/heure avec authentification
   min_remaining: 100
-  
+
   # Attendre automatiquement si la limite est atteinte
   wait_on_limit: true
-  
+
   # Intervalle de vérification du rate limit (secondes)
   check_interval: 5
 
@@ -105,29 +95,59 @@ rate_limit:
 # Configuration du README
 # ----------------------------------------------------------------------------
 readme:
-  # Fichier template personnalisé (optionnel)
-  # Laissez vide pour utiliser le template par défaut
-  template: ""
-  
-  # Sections à inclure dans le README
-  # Options: header, stats, repos, prs, issues, languages, activity, technologies, contact
+  # Sections affichées, dans cet ordre (l'en-tête et le pied de page sont toujours présents)
+  # Options : about, stack, stats, languages, activity, contact
   sections:
-    - header
+    - about
+    - stack
     - stats
-    - repos
-    - prs
-    - issues
     - languages
     - activity
-    - technologies
     - contact
-  
-  # Style des badges shields.io
-  # Options: flat, flat-square, plastic, for-the-badge, social
-  badge_style: "for-the-badge"
-  
-  # Inclure la date/heure de mise à jour dans le README
-  include_update_time: true
+
+# ----------------------------------------------------------------------------
+# Contenu du profil (affiché tel quel sur https://github.com/falilouMBC)
+# ----------------------------------------------------------------------------
+# Badges : color = couleur hexadécimale sans « # », logo = identifiant
+# simple-icons (https://simpleicons.org), logo_color = white par défaut.
+profile:
+  name: "Falilou"
+  headline: "Fullstack Developer · Solution Architect"
+  location: "Dakar, Senegal"
+  summary: >-
+    I design, build and deploy secure business applications for the banking sector.
+    Open to remote and international opportunities (France, Luxembourg).
+
+  about:
+    - "🏦 Banking applications: SWIFT statements (MT940), AML/KYC data extraction, back-office tools"
+    - "🚀 End-to-end delivery: architecture, development, Docker deployment on on-premise servers"
+    - "🔐 Security by default: secrets in a vault, parameterized queries, schema validation, secret scanning"
+    - "💼 Freelance fullstack developer since 2023"
+    - "🌱 Currently growing into cloud engineering: Kubernetes, virtualization, infrastructure as code"
+
+  stack:
+    - { label: "TypeScript", color: "3178C6", logo: "typescript" }
+    - { label: "JavaScript", color: "F7DF1E", logo: "javascript", logo_color: "black" }
+    - { label: "Java", color: "ED8B00", logo: "openjdk" }
+    - { label: "Python", color: "3776AB", logo: "python" }
+    - { label: "PHP", color: "777BB4", logo: "php" }
+    - { label: "Laravel", color: "FF2D20", logo: "laravel" }
+    - { label: "Node.js", color: "5FA04E", logo: "nodedotjs" }
+    - { label: "Oracle Database", color: "C74634" }
+    - { label: "Docker", color: "2496ED", logo: "docker" }
+    - { label: "HashiCorp Vault", color: "FFEC6E", logo: "vault", logo_color: "black" }
+    - { label: "Git", color: "F05032", logo: "git" }
+    - { label: "GitHub Actions", color: "2088FF", logo: "githubactions" }
+
+  learning:
+    - { label: "Kubernetes", color: "326CE5", logo: "kubernetes" }
+    - { label: "VMware", color: "607078", logo: "vmware" }
+
+  contact:
+    # Vérifie l'URL : c'est celle qui figurait déjà sur le profil
+    linkedin: "https://www.linkedin.com/in/falilouMBC"
+    # E-mail public : laisser vide masque le badge
+    email: ""
 
 # ----------------------------------------------------------------------------
 # Configuration Logging
@@ -139,13 +159,13 @@ logging:
   # WARNING: Seulement les avertissements
   # ERROR: Seulement les erreurs
   level: "INFO"
-  
+
   # Répertoire des fichiers de log
   directory: "logs"
-  
+
   # Taille maximale d'un fichier log (Mo)
   max_size_mb: 10
-  
+
   # Nombre de fichiers de backup à conserver
   backup_count: 5
 
@@ -155,13 +175,13 @@ logging:
 output:
   # Fichier de sortie du README généré (local)
   readme_file: "README.md"
-  
+
   # Sauvegarder aussi les statistiques en JSON
   save_json: true
-  
+
   # Fichier JSON de sortie
   json_file: "stats/github_stats.json"
-  
+
   # Afficher les statistiques dans la console
   print_to_console: true
 
@@ -171,17 +191,16 @@ output:
 advanced:
   # Timeout des requêtes HTTP (secondes)
   request_timeout: 30
-  
+
   # Nombre de tentatives en cas d'échec
   max_retries: 3
-  
+
   # Délai entre les tentatives (secondes)
   retry_delay: 2
-  
+
   # Mode parallèle (expérimental)
   # Attention: Peut consommer rapidement le rate limit
   parallel_requests: false
-  
+
   # Nombre de workers parallèles
   parallel_workers: 3
-

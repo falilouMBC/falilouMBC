@@ -1,0 +1,45 @@
+# Hooks exécutés à chaque commit : pre-commit install
+# Lancement manuel sur les fichiers indexés : pre-commit run
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: detect-private-key
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.6
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      # Typage strict : utilise le mypy figé de requirements-dev.txt
+      - id: mypy
+        name: mypy (strict)
+        entry: mypy
+        language: system
+        types: [python]
+        pass_filenames: false
+      # Verrou des dépendances : toute ligne de requirements doit être figée (==)
+      - id: pinned-requirements
+        name: dépendances figées (==)
+        language: pygrep
+        entry: '^(?!\s*(#|-r\s|$))(?!\S+==\S+\s*(#.*)?$)'
+        files: ^requirements(-dev)?\.txt$

@@ -116,3 +116,8 @@ Desktop.ini
 # Linux
 .directory
 
+
+# Caches des outils de dev
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

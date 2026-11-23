@@ -1,4 +1,8 @@
-requests>=2.31.0
-PyYAML>=6.0.1
-python-dotenv>=1.0.0
-pygithub>=2.1.0
+# Dépendances d'exécution, versions figées (dépendances transitives incluses).
+# Mise à jour : pip install -U requests PyYAML puis pip freeze, tester, commiter.
+requests==2.34.2
+PyYAML==6.0.4
+certifi==2026.11.20
+charset-normalizer==3.5.3
+idna==3.20
+urllib3==2.8.0

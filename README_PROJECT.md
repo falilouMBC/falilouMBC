@@ -128,46 +128,75 @@ cp configs/env.example .env
 
 ## ⚙️ Configuration
 
-### 1. Créer un Token GitHub
+### 1. Créer le jeton de lecture (STATS_TOKEN)
 
-1. Allez sur [GitHub Settings > Tokens](https://github.com/settings/tokens)
-2. Cliquez sur **"Generate new token (classic)"**
-3. Donnez un nom : `GitHub Stats Automation`
-4. Sélectionnez les permissions :
-   - ✅ `repo` (Full control of private repositories)
-   - ✅ `user` (Read user profile data)
-5. Générez et copiez le token
-6. Ajoutez-le dans votre fichier `.env`
+Le script ne fait que **lire** l'API : la publication du README est un commit
+du workflow avec le `GITHUB_TOKEN` du dépôt. Le jeton n'a donc besoin d'aucun
+droit d'écriture.
 
-### 2. Configurer config.yaml
+1. [Settings > Developer settings > Fine-grained tokens](https://github.com/settings/personal-access-tokens) → **Generate new token**
+2. Nom : `profile-stats-readonly` ; expiration : 1 an (mets un rappel la veille)
+3. **Repository access** : *All repositories*
+4. **Permissions** (toutes en *Read-only*) : `Contents`, `Metadata`, `Pull requests`
+5. Dans le dépôt `falilouMBC/falilouMBC` : **Settings > Secrets and variables > Actions** →
+   secret `STATS_TOKEN` (le coller directement dans le champ, jamais dans un fichier ni un chat)
 
-Le fichier `configs/config.yaml` contient toutes les options :
+Quand le jeton expire, le job échoue avec « GitHub a refusé le jeton (HTTP 401) ».
+Il suffit d'en générer un nouveau et de remplacer le secret.
+
+### 2. Modifier le contenu du profil
+
+Tout le texte affiché sur le profil est dans la section `profile` de
+`configs/config.yaml` (présentation, liste « About me », badges de la stack,
+contacts). Aucune modification de code n'est nécessaire :
 
 ```yaml
-github:
-  token: ""  # Sera surchargé par la variable d'environnement
-  username: ""
-
-stats:
-  include_private: true
-  days_back: 365
-  include_languages: true
-  include_heatmap: true
-
-cache:
-  enabled: true
-  max_age_hours: 24
+profile:
+  name: "Falilou"
+  headline: "Fullstack Developer · Solution Architect"
+  stack:
+    - { label: "Docker", color: "2496ED", logo: "docker" }  # logo : identifiant simpleicons.org
+  contact:
+    linkedin: "https://www.linkedin.com/in/falilouMBC"
+    email: ""  # vide = badge masqué
 
 readme:
-  sections:
-    - stats
-    - repos
-    - languages
-    - activity
-  badge_style: "for-the-badge"
+  sections: [about, stack, stats, languages, activity, contact]  # ordre d'affichage
 ```
 
-Pour plus de détails, consultez le fichier de configuration commenté.
+Le contenu est validé avant tout appel API : une couleur, un logo, une URL
+LinkedIn ou un e-mail invalide arrête le script avec un message explicite.
+Une config YAML invalide arrête aussi le script (plus de repli silencieux).
+
+Aperçu local sans publier :
+
+```bash
+python scripts/update_stats.py --dry-run --output /tmp/README.preview.md
+```
+
+### 3. Statistiques affichées
+
+| Ligne | Calcul |
+| :-- | :-- |
+| Commits | commits dont tu es l'auteur sur la branche par défaut, 365 derniers jours |
+| Active repositories | dépôts ayant reçu un push sur la période |
+| Pull requests | PR que tu as créées dans tes dépôts (bots exclus) : mergées, ouvertes, fermées sans merge |
+| Languages | octets par langage, forks exclus |
+| When I commit | commits par jour et par créneau de 3 h, en UTC |
+
+### 4. Tests et hooks
+
+```bash
+pip install -r requirements-dev.txt
+pre-commit install
+python -m pytest          # couverture minimale 85 % sur le rendu et la collecte
+mypy                      # typage strict (rendu, collecte, tests)
+git add -A && pre-commit run   # fichiers indexés, comme au commit
+```
+
+> Les modules non modifiés (`cache_manager.py`, `rate_limiter.py`, `env_loader.py`,
+> `check_env.py`) ne passent pas encore ruff : `--all-files` échouera tant qu'ils
+> n'auront pas été nettoyés dans une MR dédiée.
 
 ---
 
@@ -247,7 +276,7 @@ python scripts/update_stats.py --dry-run --verbose --no-cache
 2. **Configurer les secrets**
    - Allez dans **Settings > Secrets and variables > Actions**
    - Créez un secret nommé `STATS_TOKEN`
-   - Collez votre Personal Access Token
+   - Collez le jeton fine-grained en lecture seule (voir « Créer le jeton de lecture »)
 
 3. **Activer le workflow**
    - Copiez `.github/workflows/update-stats.yml` dans votre repo de profil
@@ -258,7 +287,7 @@ python scripts/update_stats.py --dry-run --verbose --no-cache
    # Le workflow s'exécute automatiquement :
    on:
      schedule:
-       - cron: '0 0 * * *'  # Tous les jours à minuit
+       - cron: '23 1 * * *'  # Tous les jours à 01:23 UTC
      workflow_dispatch:     # Déclenchement manuel
    ```
 
@@ -268,8 +297,10 @@ python scripts/update_stats.py --dry-run --verbose --no-cache
 2. Sélectionnez **"Update GitHub Stats"**
 3. Cliquez sur **"Run workflow"**
 4. Options disponibles :
-   - **Clear cache** : Nettoyer le cache avant
-   - **Dry run** : Tester sans publier
+   - **Dry run** : aperçu dans les logs, sans commit
+
+> Dans un dépôt public, GitHub désactive le cron après 60 jours sans activité.
+> Si le README ne bouge plus, vérifie l'onglet **Actions** et réactive le workflow.
 
 ---
 
@@ -346,37 +377,10 @@ github_pr_automation/
 
 ## 🎨 Personnalisation
 
-### Modifier les Sections du README
+### Modifier le contenu et les sections
 
-Éditez `configs/config.yaml` :
-
-```yaml
-readme:
-  sections:
-    - header      # En-tête avec salutation
-    - stats       # Statistiques générales
-    - repos       # Badges de dépôts
-    - prs         # Pull Requests
-    - issues      # Issues
-    - languages   # Langages de programmation
-    - activity    # Heatmap d'activité
-    - technologies # Badges de technologies
-    - contact     # Informations de contact
-```
-
-### Créer un Template Personnalisé
-
-1. Copiez `templates/profile_template.md`
-2. Modifiez selon vos besoins
-3. Utilisez les variables : `{{username}}`, `{{stars}}`, etc.
-4. Pointez vers votre template dans la config
-
-### Changer le Style des Badges
-
-```yaml
-readme:
-  badge_style: "flat-square"  # flat, flat-square, plastic, for-the-badge, social
-```
+Voir « Modifier le contenu du profil » : tout se règle dans la section
+`profile` et `readme.sections` de `configs/config.yaml`.
 
 ### Ajuster la Période d'Analyse
 
@@ -521,4 +525,3 @@ Besoin d'aide ?
 ⭐ **Si ce projet vous plaît, donnez-lui une étoile !** ⭐
 
 </div>
-

@@ -1,0 +1,9 @@
+# Outils de développement (tests, typage, lint, hooks)
+-r requirements.txt
+pytest==9.2.0
+pytest-cov==7.1.0
+mypy==2.4.1
+ruff==0.17.6
+types-requests==2.33.0.20261030
+types-PyYAML==6.0.12.20261122
+pre-commit==4.7.0

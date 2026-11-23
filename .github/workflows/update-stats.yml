@@ -1,270 +1,81 @@
 # ============================================================================
-# GitHub Actions Workflow - Mise à Jour Automatique des Stats
+# Mise à jour automatique du README de profil
 # ============================================================================
-#
-# Ce workflow met à jour automatiquement votre profil GitHub avec vos
-# statistiques les plus récentes, incluant les dépôts privés.
-#
-# Déclencheurs:
-# - Tous les jours à 00:00 UTC (schedule)
-# - Manuel via l'interface GitHub (workflow_dispatch)
-# - Push sur la branche main (optionnel)
-#
+# - Le script lit les stats avec STATS_TOKEN (PAT fine-grained, LECTURE SEULE)
+#   et écrit README.md localement.
+# - Ce workflow commite README.md avec le GITHUB_TOKEN du dépôt.
+# Le PAT n'a donc aucun droit d'écriture. Configuration : README_PROJECT.md.
 # ============================================================================
 name: 📊 Update GitHub Stats
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '23 1 * * *'  # 01:23 UTC, hors de l'heure pile (moins de retard)
   workflow_dispatch:
     inputs:
-      clear_cache:
-        description: 'Nettoyer le cache avant exécution'
-        required: false
-        type: boolean
-        default: false
       dry_run:
-        description: 'Mode dry-run (ne pas publier sur GitHub)'
+        description: 'Aperçu seulement (pas de commit)'
         required: false
         type: boolean
         default: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   update-stats:
-    name: 🔄 Mettre à jour les statistiques
+    name: 🔄 Mettre à jour le README
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
     concurrency:
       group: update-stats
       cancel-in-progress: false
 
     steps:
-      # -----------------------------------------------------------------------
-      # 0. Checkout du repository (doit être fait avant d'exécuter des commandes git)
-      # -----------------------------------------------------------------------
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
+      - name: 📥 Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
         with:
           ref: main
-          fetch-depth: 0  # Récupérer tout l'historique
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      # -----------------------------------------------------------------------
-      # 1. S'assurer d'être sur la branche main à jour
-      # -----------------------------------------------------------------------
-      - name: 🔀 Sync with main
-        run: |
-          # Récupérer les références et nettoyer les branches supprimées
-          git fetch --prune origin
-
-          # Assurer que la branche main existe localement
-          git checkout main || git checkout -b main
-
-          # Aligner la branche locale sur origin/main pour éviter les conflits lors du push
-          git reset --hard origin/main
-
-      # -----------------------------------------------------------------------
-      # 2. Configuration de Python
-      # -----------------------------------------------------------------------
       - name: 🐍 Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
-          python-version: '3.13.1'
+          python-version: '3.13'
+          cache: pip
 
-      # -----------------------------------------------------------------------
-      # 3. Installer les dépendances
-      # -----------------------------------------------------------------------
       - name: 📦 Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install --no-deps -r requirements.txt
 
-      # -----------------------------------------------------------------------
-      # 4. Afficher les informations de l'environnement
-      # -----------------------------------------------------------------------
-      - name: ℹ️ Display environment info
-        run: |
-          echo "🔍 Informations de l'environnement:"
-          echo "   Python: $(python --version)"
-          echo "   Utilisateur: ${{ github.repository_owner }}"
-          echo "   Repository: ${{ github.repository }}"
-          echo "   Workflow: ${{ github.workflow }}"
-          echo "   Run ID: ${{ github.run_id }}"
-          echo ""
-          echo "🕐 Temps d'exécution: $(date)"
-
-      # -----------------------------------------------------------------------
-      # 5. Nettoyer le cache (si demandé)
-      # -----------------------------------------------------------------------
-      - name: 🧹 Clear cache
-        if: github.event.inputs.clear_cache == 'true'
-        run: |
-          echo "🧹 Nettoyage du cache..."
-          rm -rf .cache/
-          echo "✅ Cache nettoyé"
-
-      # -----------------------------------------------------------------------
-      # 6. Exécuter le script de mise à jour
-      # -----------------------------------------------------------------------
-      - name: 🚀 Run update script
+      - name: 🚀 Generate README
         env:
-          # IMPORTANT: Utilisez un Personal Access Token avec les permissions appropriées
-          # Créez un secret nommé STATS_TOKEN dans les settings de votre repo si besoin
-          # Si STATS_TOKEN n'existe pas, on utilisera GITHUB_TOKEN
-          GITHUB_TOKEN: ${{ secrets.STATS_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.STATS_TOKEN }}
           GITHUB_USERNAME: ${{ github.repository_owner }}
-          CACHE_ENABLED: 'true'
-          LOG_LEVEL: 'INFO'
+          CACHE_ENABLED: 'false'
+          DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
         run: |
-          echo "🚀 Démarrage de la mise à jour des statistiques..."
-
-          # Construire les options
-          OPTIONS=""
-          if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
-            OPTIONS="$OPTIONS --dry-run"
-            echo "ℹ️ Mode dry-run activé"
-          fi
-
-          # Exécuter le script
-          python scripts/update_stats.py $OPTIONS
-
-          echo "✅ Script terminé avec succès"
-
-      # -----------------------------------------------------------------------
-      # 7. Vérifier les changements
-      # -----------------------------------------------------------------------
-      - name: 🔍 Check for changes
-        id: check_changes
-        run: |
-          # Vérifier si le README a été modifié
-          if git diff --quiet README.md; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "ℹ️ Aucun changement détecté dans le README"
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "✅ Changements détectés dans le README"
-
-            # Afficher les statistiques des changements
-            echo ""
-            echo "📊 Statistiques des changements:"
-            git diff --stat README.md
-          fi
-
-      # -----------------------------------------------------------------------
-      # 8. Commit et push (si changements et pas en dry-run)
-      #     — réessaie proprement et sécurisé en cas de non-fast-forward
-      # -----------------------------------------------------------------------
-      - name: 💾 Commit and push changes
-        if: |
-          steps.check_changes.outputs.changed == 'true' &&
-          github.event.inputs.dry_run != 'true'
-        run: |
-          set -euo pipefail
-
-          # Config Git
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Préparer le commit (README seulement; stats est ignoré par .gitignore)
-          git add README.md || true
-
-          # Si aucun changement à committer (sécurité)
-          if git diff --cached --quiet; then
-            echo "ℹ️ Aucun changement à commiter après staging, sortie."
-            exit 0
-          fi
-
-          git commit -m "🤖 Auto-update GitHub stats - $(date +'%Y-%m-%d %H:%M')" \
-                     -m "Updated by GitHub Actions workflow" \
-                     -m "Run ID: ${{ github.run_id }}" \
-                     -m "Triggered by: ${{ github.event_name }}"
-
-          # S'assurer que nous avons les derniers commits distants
-          git fetch origin main
-
-          # Rebaser notre commit sur origin/main pour éviter les non-fast-forward
-          # Si rebase échoue (conflit), on affichera l'erreur et on échouera pour laisser intervention manuelle.
-          if ! git rebase origin/main; then
-            echo "❌ Conflit lors du rebase sur origin/main. Intervenir manuellement."
-            git rebase --abort || true
+          if [ -z "$GITHUB_TOKEN" ]; then
+            echo "::error::Secret STATS_TOKEN absent (Settings > Secrets and variables > Actions)"
             exit 1
           fi
-
-          # Essayer un push normal d'abord
-          if git push origin HEAD:main; then
-            echo "✅ Push effectué avec succès."
+          if [ "$DRY_RUN" = "true" ]; then
+            python scripts/update_stats.py --dry-run
           else
-            # Si push rejeté (concurrence), tenter un push --force-with-lease (plus sûr que --force)
-            echo "⚠️ Push rejeté, tentative de push --force-with-lease..."
-            if git push --force-with-lease origin HEAD:main; then
-              echo "✅ Push forcé (with-lease) effectué."
-            else
-              echo "❌ Échec du push même avec --force-with-lease."
-              exit 1
-            fi
+            python scripts/update_stats.py
           fi
 
-      # -----------------------------------------------------------------------
-      # 9. Résumé de l'exécution
-      # -----------------------------------------------------------------------
-      - name: 📋 Execution summary
-        if: always()
+      - name: 💾 Commit README
+        if: ${{ !inputs.dry_run }}
         run: |
-          echo ""
-          echo "══════════════════════════════════════════════════════="
-          echo "           📊 RÉSUMÉ DE L'EXÉCUTION"
-          echo "══════════════════════════════════════════════════════="
-          echo ""
-          echo "✅ Statut: ${{ job.status }}"
-          echo "🕐 Terminé à: $(date)"
-          echo "🔗 Profil: https://github.com/${{ github.repository_owner }}"
-          echo ""
-
-          if [ "${{ steps.check_changes.outputs.changed }}" == "true" ]; then
-            echo "📝 README mis à jour avec succès!"
-          else
-            echo "ℹ️ Aucune mise à jour nécessaire"
+          set -euo pipefail
+          if git diff --quiet -- README.md; then
+            echo "ℹ️ README inchangé"
+            exit 0
           fi
-
-          echo ""
-          echo "══════════════════════════════════════════════════════="
-
-      # -----------------------------------------------------------------------
-      # 10. Gestion des erreurs
-      # -----------------------------------------------------------------------
-      - name: ❌ Handle errors
-        if: failure()
-        run: |
-          echo ""
-          echo "══════════════════════════════════════════════════════="
-          echo "           ❌ ERREUR LORS DE L'EXÉCUTION"
-          echo "════════════════════════════════════════════════════════"
-          echo ""
-          echo "Une erreur s'est produite lors de l'exécution du workflow."
-          echo ""
-          echo "🔍 Actions de dépannage:"
-          echo "   1. Vérifiez que GITHUB_TOKEN ou STATS_TOKEN est configuré"
-          echo "   2. Vérifiez les permissions du token (repo, user)"
-          echo "   3. Consultez les logs ci-dessus pour plus de détails"
-          echo ""
-          echo "📚 Documentation: https://docs.github.com/actions"
-          echo ""
-          echo "══════════════════════════════════════════════════════="
-          exit 1
-
-# ============================================================================
-# Configuration du Token (info)
-# ============================================================================
-#
-# Pour que ce workflow fonctionne correctement, vous pouvez créer un
-# Personal Access Token (PAT) nommé STATS_TOKEN si vous avez besoin d'accéder
-# à des dépôts privés ou d'utiliser un token distinct pour pousser depuis le job.
-# Si STATS_TOKEN est fourni en secret, il sera utilisé pour la variable
-# d'environnement GITHUB_TOKEN lors de l'exécution du script.
-#
-# Remarque: actions/checkout utilisera par défaut le token passé via 'token:'
-# pour configurer les credentials git du runner. Si vous avez besoin que les
-# pushes utilisent STATS_TOKEN (au lieu du GITHUB_TOKEN du runner), il faudra
-# configurer explicitement l'URL distante avec ce token (méthode avancée).
-#
-# ============================================================================
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "🤖 Auto-update GitHub stats - $(date -u +'%Y-%m-%d')" -m "Run ID: ${{ github.run_id }}"
+          # Pas de push forcé : en cas de conflit, le job échoue et le run suivant réessaie
+          git push origin HEAD:main
