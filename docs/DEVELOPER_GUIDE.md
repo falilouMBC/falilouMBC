@@ -81,14 +81,14 @@ class Config:
 from src.config import Config
 
 # Charger la config
-config = Config('configs/config.yaml')
+config = Config("configs/config.yaml")
 
 # Récupérer une valeur
-token = config.get('github.token')
-days_back = config.get('stats.days_back', 365)
+token = config.get("github.token")
+days_back = config.get("stats.days_back", 365)
 
 # Modifier une valeur
-config.set('cache.enabled', False)
+config.set("cache.enabled", False)
 config.save()
 
 # Valider
@@ -130,16 +130,16 @@ class CacheManager:
 ```python
 from src.cache_manager import CacheManager
 
-cache = CacheManager('.cache')
+cache = CacheManager(".cache")
 
 # Vérifier le cache
-data = cache.get('repos_username', max_age_hours=24)
+data = cache.get("repos_username", max_age_hours=24)
 if data:
     print("Données en cache!")
 else:
     # Récupérer depuis l'API
     data = fetch_from_api()
-    cache.set('repos_username', data)
+    cache.set("repos_username", data)
 
 # Nettoyer
 cache.clear()
@@ -183,6 +183,7 @@ def my_api_call(self):
     # Vérifie automatiquement le rate limit avant l'appel
     pass
 
+
 @with_retry(max_retries=3, delay=2)
 def my_api_call(self):
     # Réessaie automatiquement en cas d'erreur
@@ -198,6 +199,7 @@ limiter = RateLimitHandler(headers)
 
 # Vérifier manuellement
 limiter.wait_if_needed()
+
 
 # Ou utiliser le décorateur
 class MyClass:
@@ -228,46 +230,39 @@ class MyClass:
 
 ```python
 class GitHubStatsPrivate:
-    def __init__(self, token: str, username: str, config: Optional[Config] = None)
-    
-    # Méthodes de collecte
-    def get_all_repos(self) -> List[Dict]
-    def count_stars(self, repos: List[Dict]) -> int
-    def count_commits_last_year(self, repos: List[Dict]) -> int
-    def count_pull_requests(self, repos: List[Dict]) -> Dict[str, int]
-    def count_issues(self, repos: List[Dict]) -> Dict[str, int]
-    def get_language_stats(self, repos: List[Dict]) -> Dict[str, float]
-    def get_code_changes_stats(self, repos: List[Dict]) -> Dict[str, int]
-    def get_activity_heatmap(self, repos: List[Dict]) -> Dict[int, Dict[int, int]]
-    
-    # Méthodes principales
-    def calculate_all_stats(self) -> Dict[str, Any]
-    def generate_profile_readme(self, stats: Dict[str, Any]) -> str
-    def update_profile_readme(self, content: str) -> Dict
+    def __init__(self, token: str, username: str, config: Config | None = None) -> None
+
+    # Collecte (jeton en lecture seule)
+    def get_all_repos(self) -> list[JsonObject]
+    def get_commit_dates(self, repos: list[JsonObject]) -> list[datetime]
+    def count_pull_requests(self, repos: list[JsonObject]) -> PullRequestStats
+    def count_active_repos(self, repos: list[JsonObject]) -> int
+    def get_language_stats(self, repos: list[JsonObject]) -> dict[str, float]
+
+    # Point d'entrée
+    def calculate_all_stats(self) -> ProfileStats
 ```
+
+Le rendu est séparé dans `src/readme_renderer.py` (aucun appel réseau) :
+`load_profile(config.get('profile'))`, `load_sections(...)`, puis
+`render_readme(profile, stats, username=..., updated_on=...)`.
 
 #### Exemple d'Utilisation Complète
 
 ```python
-from src.github_stats import GitHubStatsPrivate
+from datetime import UTC, datetime
+
 from src.config import Config
+from src.github_stats import GitHubStatsPrivate
+from src.readme_renderer import load_profile, render_readme
 
-# Initialiser
-config = Config()
-stats_manager = GitHubStatsPrivate(
-    token='ghp_...',
-    username='johndoe',
-    config=config
-)
-
-# Calculer les stats
+config = Config()  # jeton lu dans GITHUB_TOKEN
+stats_manager = GitHubStatsPrivate(config.get("github.token"), "johndoe", config)
 stats = stats_manager.calculate_all_stats()
-
-# Générer le README
-readme = stats_manager.generate_profile_readme(stats)
-
-# Publier
-result = stats_manager.update_profile_readme(readme)
+readme = render_readme(
+    load_profile(config.get("profile")), stats, username="johndoe", updated_on=datetime.now(UTC).date()
+)
+# Publication : commit de README.md par le workflow (GITHUB_TOKEN), pas par l'API
 ```
 
 ---
@@ -330,29 +325,13 @@ Utilisateur
     │       │       │       ├─► Si pas de cache: API call
     │       │       │       └─► Mettre en cache
     │       │       │
-    │       │       ├─► count_stars()
-    │       │       ├─► count_commits_last_year()
-    │       │       │       │
-    │       │       │       └─► Pour chaque repo:
-    │       │       │               │
-    │       │       │               ├─► Vérifier rate limit
-    │       │       │               └─► GET /repos/.../commits
-    │       │       │
-    │       │       ├─► count_pull_requests()
-    │       │       ├─► count_issues()
-    │       │       ├─► get_language_stats()
-    │       │       ├─► get_code_changes_stats()
-    │       │       └─► get_activity_heatmap()
+    │       │       ├─► get_commit_dates()      (compte + heatmap, paginé)
+    │       │       ├─► count_active_repos()
+    │       │       ├─► count_pull_requests()   (auteur = toi, bots exclus)
+    │       │       └─► get_language_stats()    (forks exclus)
     │       │
-    │       ├─► generate_profile_readme()
-    │       │       │
-    │       │       └─► Formater en Markdown
-    │       │
-    │       └─► update_profile_readme()
-    │               │
-    │               ├─► GET README.md (récupérer SHA)
-    │               ├─► Encoder en base64
-    │               └─► PUT README.md
+    │       └─► readme_renderer.render_readme() → README.md local
+    │               (le workflow commite README.md avec GITHUB_TOKEN)
     │
     └─► Afficher résumé
 ```
@@ -551,17 +530,19 @@ self.logger.error(f"❌ Failed to fetch: {error}")
 ```python
 # Dans github_stats.py
 
+
 def count_forks(self, repos: List[Dict]) -> int:
     """Compte le nombre total de forks"""
-    total = sum(repo['forks_count'] for repo in repos)
+    total = sum(repo["forks_count"] for repo in repos)
     self.logger.info(f"🍴 Total forks: {total}")
     return total
 
-# Dans calculate_all_stats()
-stats['forks'] = self.count_forks(repos)
 
-# Dans generate_profile_readme()
-readme += f"| 🍴 Total Forks | **{format_number(stats['forks'])}** |\n"
+# Dans calculate_all_stats()
+stats["forks"] = self.count_forks(repos)
+
+# Dans readme_renderer._stats() (ajouter aussi la clé au TypedDict ProfileStats)
+rows.append(f"| 🍴 Forks | **{stats['forks']:,}** |")
 ```
 
 ### 2. Nouveau Module
@@ -571,16 +552,17 @@ readme += f"| 🍴 Total Forks | **{format_number(stats['forks'])}** |\n"
 ```python
 # src/actions_analyzer.py
 
+
 class ActionsAnalyzer:
     def __init__(self, headers: Dict):
         self.headers = headers
-        self.base_url = 'https://api.github.com'
-    
+        self.base_url = "https://api.github.com"
+
     def get_workflow_runs(self, repo: str) -> List[Dict]:
         """Récupère les exécutions de workflows"""
-        url = f'{self.base_url}/repos/{repo}/actions/runs'
+        url = f"{self.base_url}/repos/{repo}/actions/runs"
         response = requests.get(url, headers=self.headers)
-        return response.json()['workflow_runs']
+        return response.json()["workflow_runs"]
 ```
 
 ### 3. Nouveau Format de Sortie
@@ -589,6 +571,7 @@ class ActionsAnalyzer:
 
 ```python
 # src/html_generator.py
+
 
 class HTMLGenerator:
     def generate(self, stats: Dict) -> str:
@@ -600,8 +583,8 @@ class HTMLGenerator:
             <title>GitHub Stats</title>
         </head>
         <body>
-            <h1>Statistiques de {stats['username']}</h1>
-            <p>Stars: {stats['stars']}</p>
+            <h1>Statistiques de {stats["username"]}</h1>
+            <p>Stars: {stats["stars"]}</p>
         </body>
         </html>
         """
@@ -620,18 +603,21 @@ class HTMLGenerator:
 import pytest
 from src.cache_manager import CacheManager
 
+
 @pytest.fixture
 def cache():
-    return CacheManager('.test_cache')
+    return CacheManager(".test_cache")
+
 
 def test_set_and_get(cache):
-    cache.set('test_key', {'data': 'value'})
-    result = cache.get('test_key')
-    assert result == {'data': 'value'}
+    cache.set("test_key", {"data": "value"})
+    result = cache.get("test_key")
+    assert result == {"data": "value"}
+
 
 def test_expiration(cache):
-    cache.set('test_key', {'data': 'value'})
-    result = cache.get('test_key', max_age_hours=0)
+    cache.set("test_key", {"data": "value"})
+    result = cache.get("test_key", max_age_hours=0)
     assert result is None
 ```
 
@@ -659,13 +645,14 @@ pytest --cov=src tests/
 def get_repos(self) -> List[Dict]:
     """
     Récupère tous les repositories
-    
+
     Returns:
         Liste de dictionnaires représentant les repos
     """
     repos = []
     # ...
     return repos
+
 
 # ❌ Mauvais
 def get_repos(self):
@@ -714,14 +701,14 @@ print("Processing repos")
 ```python
 # ✅ Bon - Arrêt anticipé
 for repo in repos:
-    if repo['private'] and not self.config.get('stats.include_private'):
+    if repo["private"] and not self.config.get("stats.include_private"):
         continue
     process_repo(repo)
 
 # ❌ Mauvais - Traite tout
 for repo in repos:
-    if repo['private']:
-        if self.config.get('stats.include_private'):
+    if repo["private"]:
+        if self.config.get("stats.include_private"):
             process_repo(repo)
     else:
         process_repo(repo)
@@ -741,4 +728,3 @@ for repo in repos:
 **Contributeurs, bienvenue ! 🎉**
 
 Ce guide est en constante évolution. N'hésitez pas à proposer des améliorations !
-

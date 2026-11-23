@@ -1,0 +1,17 @@
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+follow_imports = "silent"
+files = ["src/readme_renderer.py", "src/github_stats.py", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--cov=src.readme_renderer --cov=src.github_stats --cov-report=term-missing --cov-fail-under=85"

@@ -40,7 +40,7 @@ GITHUB_USERNAME=votre_username
 
 **Exemple concret :**
 ```bash
-GITHUB_TOKEN=ghp_1A2b3C4d5E6f7G8h9I0jKlMnOpQrStUvWxYz
+GITHUB_TOKEN=github_pat_EXEMPLE_NE_PAS_UTILISER
 GITHUB_USERNAME=johndoe
 ```
 
@@ -393,4 +393,3 @@ python scripts/update_stats.py
 ---
 
 **Besoin d'aide ?** Ouvrez une [issue](https://github.com/VOTRE_USERNAME/github_pr_automation/issues) !
-
